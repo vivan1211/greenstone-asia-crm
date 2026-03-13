@@ -1,13 +1,15 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { getSupabaseBrowserClient } from '@/lib/supabase/client'
 import { Button, Input } from '@/components/ui'
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const searchParams = useSearchParams()
+  const accessDenied = searchParams.get('error') === 'access_denied'
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const router = useRouter()
@@ -44,6 +46,12 @@ export default function LoginPage() {
         <div className="bg-white border border-[#e5e7eb] rounded-xl p-7 shadow-sm">
           <h1 className="text-[15px] font-semibold text-[#111827] mb-1">Sign in</h1>
           <p className="text-[12px] text-[#9ca3af] mb-6">Access your FMP pipeline</p>
+
+          {accessDenied && (
+            <div className="mb-4 text-[12px] text-[#dc2626] bg-[#fef2f2] border border-[#fecaca] rounded-md px-3 py-2">
+              Your account has not been granted access. Contact your administrator.
+            </div>
+          )}
 
           <form onSubmit={handleSubmit} className="flex flex-col gap-4">
             <Input
