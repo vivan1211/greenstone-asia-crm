@@ -1,12 +1,12 @@
 'use client'
 
-import { useState } from 'react'
+import { Suspense, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { getSupabaseBrowserClient } from '@/lib/supabase/client'
 import { Button, Input } from '@/components/ui'
 
-export default function LoginPage() {
+function LoginForm() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const searchParams = useSearchParams()
@@ -33,6 +33,71 @@ export default function LoginPage() {
   }
 
   return (
+    <>
+      {/* Card */}
+      <div className="bg-white border border-[#e5e7eb] rounded-xl p-7 shadow-sm">
+        <h1 className="text-[15px] font-semibold text-[#111827] mb-1">Sign in</h1>
+        <p className="text-[12px] text-[#9ca3af] mb-6">Access your FMP pipeline</p>
+
+        {accessDenied && (
+          <div className="mb-4 text-[12px] text-[#dc2626] bg-[#fef2f2] border border-[#fecaca] rounded-md px-3 py-2">
+            Your account is pending approval. Contact your administrator.
+          </div>
+        )}
+
+        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+          <Input
+            label="Email address"
+            type="email"
+            value={email}
+            onChange={e => setEmail(e.target.value)}
+            placeholder="you@greenstoneep.com"
+            required
+            autoComplete="email"
+          />
+          <Input
+            label="Password"
+            type="password"
+            value={password}
+            onChange={e => setPassword(e.target.value)}
+            placeholder="••••••••"
+            required
+            autoComplete="current-password"
+          />
+
+          {error && (
+            <p className="text-[12px] text-[#dc2626] bg-[#fef2f2] border border-[#fecaca] rounded-md px-3 py-2">
+              {error}
+            </p>
+          )}
+
+          <Button
+            type="submit"
+            variant="primary"
+            loading={loading}
+            className="w-full justify-center mt-1 h-9"
+          >
+            Sign in
+          </Button>
+        </form>
+      </div>
+
+      <p className="text-center text-[12px] text-[#9ca3af] mt-5">
+        Don't have an account?{' '}
+        <Link href="/signup" className="text-[#111827] font-medium hover:underline">
+          Request access
+        </Link>
+      </p>
+
+      <p className="text-center text-[11px] text-[#9ca3af] mt-3">
+        Greenstone Equity Partners · APAC FMP Pipeline
+      </p>
+    </>
+  )
+}
+
+export default function LoginPage() {
+  return (
     <div className="min-h-screen bg-[#f9fafb] flex items-center justify-center p-4">
       <div className="w-full max-w-[360px]">
         {/* Logo */}
@@ -43,64 +108,9 @@ export default function LoginPage() {
           <span className="text-[16px] font-semibold text-[#111827]">Greenstone CRM</span>
         </div>
 
-        {/* Card */}
-        <div className="bg-white border border-[#e5e7eb] rounded-xl p-7 shadow-sm">
-          <h1 className="text-[15px] font-semibold text-[#111827] mb-1">Sign in</h1>
-          <p className="text-[12px] text-[#9ca3af] mb-6">Access your FMP pipeline</p>
-
-          {accessDenied && (
-            <div className="mb-4 text-[12px] text-[#dc2626] bg-[#fef2f2] border border-[#fecaca] rounded-md px-3 py-2">
-              Your account is pending approval. Contact your administrator.
-            </div>
-          )}
-
-          <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-            <Input
-              label="Email address"
-              type="email"
-              value={email}
-              onChange={e => setEmail(e.target.value)}
-              placeholder="you@greenstoneep.com"
-              required
-              autoComplete="email"
-            />
-            <Input
-              label="Password"
-              type="password"
-              value={password}
-              onChange={e => setPassword(e.target.value)}
-              placeholder="••••••••"
-              required
-              autoComplete="current-password"
-            />
-
-            {error && (
-              <p className="text-[12px] text-[#dc2626] bg-[#fef2f2] border border-[#fecaca] rounded-md px-3 py-2">
-                {error}
-              </p>
-            )}
-
-            <Button
-              type="submit"
-              variant="primary"
-              loading={loading}
-              className="w-full justify-center mt-1 h-9"
-            >
-              Sign in
-            </Button>
-          </form>
-        </div>
-
-        <p className="text-center text-[12px] text-[#9ca3af] mt-5">
-          Don't have an account?{' '}
-          <Link href="/signup" className="text-[#111827] font-medium hover:underline">
-            Request access
-          </Link>
-        </p>
-
-        <p className="text-center text-[11px] text-[#9ca3af] mt-3">
-          Greenstone Equity Partners · APAC FMP Pipeline
-        </p>
+        <Suspense fallback={null}>
+          <LoginForm />
+        </Suspense>
       </div>
     </div>
   )
