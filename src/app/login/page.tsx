@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
+import Link from 'next/link'
 import { getSupabaseBrowserClient } from '@/lib/supabase/client'
 import { Button, Input } from '@/components/ui'
 
@@ -49,7 +50,7 @@ export default function LoginPage() {
 
           {accessDenied && (
             <div className="mb-4 text-[12px] text-[#dc2626] bg-[#fef2f2] border border-[#fecaca] rounded-md px-3 py-2">
-              Your account has not been granted access. Contact your administrator.
+              Your account is pending approval. Contact your administrator.
             </div>
           )}
 
@@ -90,7 +91,14 @@ export default function LoginPage() {
           </form>
         </div>
 
-        <p className="text-center text-[11px] text-[#9ca3af] mt-5">
+        <p className="text-center text-[12px] text-[#9ca3af] mt-5">
+          Don't have an account?{' '}
+          <Link href="/signup" className="text-[#111827] font-medium hover:underline">
+            Request access
+          </Link>
+        </p>
+
+        <p className="text-center text-[11px] text-[#9ca3af] mt-3">
           Greenstone Equity Partners · APAC FMP Pipeline
         </p>
       </div>

@@ -8,6 +8,7 @@ export async function middleware(request: NextRequest) {
   // Allow login and auth callback through
   if (
     pathname.startsWith('/login') ||
+    pathname.startsWith('/signup') ||
     pathname.startsWith('/api/auth')
   ) {
     return NextResponse.next()
@@ -42,15 +43,15 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL('/login', request.url))
   }
 
-  // Check if this user is in the allowed_users table
+  // Check if this user is approved
   const { data: allowed } = await supabase
     .from('allowed_users')
-    .select('email')
+    .select('approved')
     .eq('email', user.email)
     .maybeSingle()
 
-  if (!allowed) {
-    // Valid Supabase account but not on the allowlist — sign out and block
+  if (!allowed?.approved) {
+    // Not approved — sign out and block
     await supabase.auth.signOut()
     return NextResponse.redirect(new URL('/login?error=access_denied', request.url))
   }
