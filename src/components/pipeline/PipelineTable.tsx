@@ -39,12 +39,54 @@ const DEFAULT_VISIBLE = new Set<ColKey>(
   COL_CONFIG.filter(c => c.defaultOn).map(c => c.key)
 )
 
+type SortDir = 'asc' | 'desc'
+
+function getFmpSortValue(fmp: Fmp, key: ColKey): string | number {
+  switch (key) {
+    case 'name':          return fmp.name?.toLowerCase() ?? ''
+    case 'rm':            return fmp.relationship_manager?.toLowerCase() ?? ''
+    case 'market':        return fmp.market ?? ''
+    case 'stage':         return fmp.stage ?? ''
+    case 'sub_status':    return fmp.sub_status ?? ''
+    case 'next_contact':  return fmp.next_contact_date ?? ''
+    case 'next_step':     return fmp.next_step?.toLowerCase() ?? ''
+    case 'retainer':      return fmp.retainer_amount ?? 0
+    case 'fund_reg_fee':  return fmp.fund_registration_fee ?? 0
+    case 'contract_start':return fmp.contract_start_date ?? ''
+    case 'date_added':    return fmp.date_added ?? ''
+    case 'contact_name':  return fmp.fmp_contact_name?.toLowerCase() ?? ''
+    case 'contact_role':  return fmp.fmp_contact_role?.toLowerCase() ?? ''
+    case 'contact_email': return fmp.fmp_contact_email?.toLowerCase() ?? ''
+  }
+}
+
 export function PipelineTable({ fmps }: Props) {
   const router = useRouter()
   const [visible, setVisible] = useState<Set<ColKey>>(new Set(DEFAULT_VISIBLE))
   const [dropdownOpen, setDropdownOpen] = useState(false)
   const [editingFmp, setEditingFmp] = useState<Fmp | null>(null)
+  const [sortKey, setSortKey] = useState<ColKey | null>(null)
+  const [sortDir, setSortDir] = useState<SortDir>('asc')
   const dropdownRef = useRef<HTMLDivElement>(null)
+
+  const handleSort = (key: ColKey) => {
+    if (sortKey === key) {
+      setSortDir(d => d === 'asc' ? 'desc' : 'asc')
+    } else {
+      setSortKey(key)
+      setSortDir('asc')
+    }
+  }
+
+  const sortedFmps = sortKey
+    ? [...fmps].sort((a, b) => {
+        const av = getFmpSortValue(a, sortKey)
+        const bv = getFmpSortValue(b, sortKey)
+        if (av < bv) return sortDir === 'asc' ? -1 : 1
+        if (av > bv) return sortDir === 'asc' ? 1 : -1
+        return 0
+      })
+    : fmps
 
   useEffect(() => {
     const handler = (e: MouseEvent) => {
@@ -258,13 +300,27 @@ export function PipelineTable({ fmps }: Props) {
               {cols.map((col, i) => (
                 <th
                   key={col.key}
+                  onClick={() => handleSort(col.key)}
                   className={[
-                    'text-left py-2.5 px-4 text-[10px] font-semibold uppercase tracking-wider text-[#9ca3af]',
+                    'text-left py-2.5 px-4 text-[10px] font-semibold uppercase tracking-wider text-[#9ca3af] select-none cursor-pointer hover:text-[#6b7280] transition-colors',
                     'border-b border-[#e5e7eb]',
                     i < cols.length - 1 ? 'border-r border-[#e5e7eb]' : '',
                   ].join(' ')}
                 >
-                  {col.label}
+                  <span className="flex items-center gap-1">
+                    {col.label}
+                    {sortKey === col.key ? (
+                      <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor" className="text-[#1a4731]">
+                        {sortDir === 'asc'
+                          ? <path d="M12 4l8 16H4z" />
+                          : <path d="M12 20L4 4h16z" />}
+                      </svg>
+                    ) : (
+                      <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor" className="opacity-30">
+                        <path d="M12 4l8 16H4z" opacity="0.5" /><path d="M12 20L4 4h16z" opacity="0.5" />
+                      </svg>
+                    )}
+                  </span>
                 </th>
               ))}
               {/* Edit column header */}
@@ -272,8 +328,8 @@ export function PipelineTable({ fmps }: Props) {
             </tr>
           </thead>
           <tbody>
-            {fmps.map((fmp, i) => {
-              const isLast = i === fmps.length - 1
+            {sortedFmps.map((fmp, i) => {
+              const isLast = i === sortedFmps.length - 1
               return (
                 <tr
                   key={fmp.id}
