@@ -51,7 +51,7 @@ export function Sidebar() {
           <div className="w-6 h-6 rounded bg-[#1a4731] flex items-center justify-center flex-shrink-0">
             <span className="text-white text-[10px] font-bold">G</span>
           </div>
-          <span className="text-[13px] font-semibold text-[#111827]">Greenstone CRM</span>
+          <span className="text-[13px] font-semibold text-[#111827]">Greenstone Asia CRM</span>
         </div>
       </div>
 

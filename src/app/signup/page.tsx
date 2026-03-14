@@ -46,7 +46,7 @@ export default function SignupPage() {
           <div className="w-8 h-8 rounded-lg bg-[#111827] flex items-center justify-center">
             <span className="text-white text-[13px] font-bold">G</span>
           </div>
-          <span className="text-[16px] font-semibold text-[#111827]">Greenstone CRM</span>
+          <span className="text-[16px] font-semibold text-[#111827]">Greenstone Asia CRM</span>
         </div>
 
         <div className="bg-white border border-[#e5e7eb] rounded-xl p-7 shadow-sm">

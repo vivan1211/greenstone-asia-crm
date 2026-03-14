@@ -3,8 +3,10 @@
 import { useRef, useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { StageBadge, MarketPill, SubStatusBadge } from '@/components/ui'
+import { FmpForm } from '@/components/fmp/FmpForm'
+import { updateFmpAction } from '@/lib/actions'
 import { formatDate, formatCurrency, isOverdue } from '@/lib/utils'
-import type { Fmp } from '@/types'
+import type { Fmp, FmpFormData } from '@/types'
 
 interface Props {
   fmps: Fmp[]
@@ -41,6 +43,7 @@ export function PipelineTable({ fmps }: Props) {
   const router = useRouter()
   const [visible, setVisible] = useState<Set<ColKey>>(new Set(DEFAULT_VISIBLE))
   const [dropdownOpen, setDropdownOpen] = useState(false)
+  const [editingFmp, setEditingFmp] = useState<Fmp | null>(null)
   const dropdownRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -59,6 +62,29 @@ export function PipelineTable({ fmps }: Props) {
       if (next.has(key)) { next.delete(key) } else { next.add(key) }
       return next
     })
+  }
+
+  const handleEditSubmit = async (data: FmpFormData) => {
+    if (!editingFmp) return
+    await updateFmpAction(editingFmp.id, {
+      name: data.name,
+      relationship_manager: data.relationship_manager || null,
+      market: data.market || null,
+      stage: data.stage || null,
+      sub_status: data.sub_status || null,
+      next_step: data.next_step || null,
+      next_contact_date: data.next_contact_date || null,
+      fmp_contact_name: data.fmp_contact_name || null,
+      fmp_contact_email: data.fmp_contact_email || null,
+      fmp_contact_role: data.fmp_contact_role || null,
+      retainer_amount: data.retainer_amount ? parseFloat(data.retainer_amount) : null,
+      fund_registration_fee: data.fund_registration_fee ? parseFloat(data.fund_registration_fee) : null,
+      contract_status: data.contract_status || null,
+      contract_start_date: data.contract_start_date || null,
+      date_added: data.date_added || null,
+    })
+    setEditingFmp(null)
+    router.refresh()
   }
 
   const cols = COL_CONFIG.filter(c => visible.has(c.key))
@@ -98,7 +124,11 @@ export function PipelineTable({ fmps }: Props) {
       case 'sub_status':
         return (
           <td key={key} className={base}>
-            <SubStatusBadge subStatus={fmp.sub_status} />
+            {fmp.stage === 'Prospect' ? (
+              <span className="text-[#d1d5db]">—</span>
+            ) : (
+              <SubStatusBadge subStatus={fmp.sub_status} />
+            )}
           </td>
         )
       case 'next_contact': {
@@ -237,6 +267,8 @@ export function PipelineTable({ fmps }: Props) {
                   {col.label}
                 </th>
               ))}
+              {/* Edit column header */}
+              <th className="text-left py-2.5 px-4 border-b border-[#e5e7eb] w-10" />
             </tr>
           </thead>
           <tbody>
@@ -249,12 +281,63 @@ export function PipelineTable({ fmps }: Props) {
                   className="cursor-pointer transition-colors duration-100 hover:bg-[#f9fafb] group"
                 >
                   {cols.map(col => renderCell(fmp, col.key, isLast))}
+                  <td
+                    className={`px-3 py-3 ${!isLast ? 'border-b border-[#f0f0f0]' : ''} w-10`}
+                    onClick={e => { e.stopPropagation(); setEditingFmp(fmp) }}
+                  >
+                    <button
+                      type="button"
+                      className="opacity-0 group-hover:opacity-100 transition-opacity duration-100 p-1 rounded hover:bg-[#e5e7eb] text-[#9ca3af] hover:text-[#374151]"
+                      title="Edit"
+                    >
+                      <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                      </svg>
+                    </button>
+                  </td>
                 </tr>
               )
             })}
           </tbody>
         </table>
       </div>
+
+      {/* Edit Modal */}
+      {editingFmp && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
+          onClick={() => setEditingFmp(null)}
+        >
+          <div
+            className="bg-white rounded-xl shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto mx-4"
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between px-6 pt-5 pb-4 border-b border-[#e5e7eb]">
+              <div>
+                <h2 className="text-[15px] font-semibold text-[#111827]">Edit FMP</h2>
+                <p className="text-[12px] text-[#9ca3af] mt-0.5">{editingFmp.name}</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setEditingFmp(null)}
+                className="p-1.5 rounded-md text-[#9ca3af] hover:text-[#374151] hover:bg-[#f3f4f6] transition-colors"
+              >
+                <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <div className="px-6 py-5">
+              <FmpForm
+                initial={editingFmp}
+                onSubmit={handleEditSubmit}
+                onCancel={() => setEditingFmp(null)}
+                submitLabel="Save Changes"
+              />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

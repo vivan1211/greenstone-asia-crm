@@ -12,6 +12,7 @@ const TABS = ['Details', 'Contact', 'Contract', 'Next Step']
 interface Props {
   initial?: Fmp
   onSubmit: (data: FmpFormData) => Promise<void>
+  onCancel?: () => void
   submitLabel?: string
 }
 
@@ -53,7 +54,7 @@ function fmpToFormData(fmp: Fmp): FmpFormData {
   }
 }
 
-export function FmpForm({ initial, onSubmit, submitLabel = 'Save FMP' }: Props) {
+export function FmpForm({ initial, onSubmit, onCancel, submitLabel = 'Save FMP' }: Props) {
   const router = useRouter()
   const [form, setForm] = useState<FmpFormData>(initial ? fmpToFormData(initial) : empty)
   const [loading, setLoading] = useState(false)
@@ -103,9 +104,11 @@ export function FmpForm({ initial, onSubmit, submitLabel = 'Save FMP' }: Props) 
             <Select label="Stage" value={form.stage} onChange={set('stage')} placeholder="Select stage">
               {STAGES.map(s => <option key={s} value={s}>{s}</option>)}
             </Select>
-            <Select label="Sub-Status" value={form.sub_status} onChange={e => setForm(prev => ({ ...prev, sub_status: e.target.value as SubStatus | '' }))} placeholder="Select sub-status">
-              {SUB_STATUSES.map(s => <option key={s} value={s}>{s}</option>)}
-            </Select>
+            {form.stage !== 'Prospect' && (
+              <Select label="Sub-Status" value={form.sub_status} onChange={e => setForm(prev => ({ ...prev, sub_status: e.target.value as SubStatus | '' }))} placeholder="Select sub-status">
+                {SUB_STATUSES.map(s => <option key={s} value={s}>{s}</option>)}
+              </Select>
+            )}
             <Input
               label="Date Added"
               type="date"
@@ -192,7 +195,7 @@ export function FmpForm({ initial, onSubmit, submitLabel = 'Save FMP' }: Props) 
         <Button type="submit" variant="primary" loading={loading}>
           {submitLabel}
         </Button>
-        <Button type="button" variant="secondary" onClick={() => router.back()}>
+        <Button type="button" variant="secondary" onClick={onCancel ?? (() => router.back())}>
           Cancel
         </Button>
       </div>
